@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Logística de Viaturas</title>
+    <!-- Favicon set to your image - Adjust path if needed -->
+    <link rel="icon" type="image/png" href="Novo Projeto.png" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        header {
+            background-color: #001f3f; /* Azul marinho */
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        header img {
+            height: 100px; /* Adjust height as needed */
+            margin-right: 10px;
+        }
+        h1, h2, h3 {
+            margin: 0;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="text"], select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #001f3f; /* Azul marinho */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #003366; /* Tom mais escuro de azul marinho */
+        }
+        .dashboard {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .dashboard h2 {
+            color: #001f3f;
+            margin-bottom: 10px;
+        }
+        .dashboard-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .dashboard-stats div {
+            background-color: #001f3f;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            flex: 1;
+            margin: 0 5px;
+        }
+        .dashboard-list {
+            display: flex;
+            justify-content: space-between;
+        }
+        .dashboard-list div {
+            flex: 1;
+            margin: 0 10px;
+        }
+        .dashboard-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        .dashboard-list li {
+            background-color: white;
+            padding: 10px;
+            margin-bottom: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            position: relative;
+            padding-left: 20px; /* Space for the colored ball */
+        }
+        .dashboard-list li::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .dashboard-list #listaInativas li::before {
+            background-color: green; /* Green ball for Inativas */
+        }
+        .dashboard-list #listaEmServico li::before {
+            background-color: red; /* Red ball for Em Serviço */
+        }
+        .viatura-list {
+            margin-top: 20px;
+        }
+        .viatura-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .viatura-item h3 {
+            margin: 0 0 10px;
+        }
+        .status-form {
+            display: none;
+            margin-top: 10px;
+        }
+        #report-section {
+            margin-top: 20px;
+        }
+        #reset-section {
+            margin-top: 20px;
+        }
+        #report-content, #reset-content {
+            display: none;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        @media print {
+            #report-content {
+                display: block !important;
+            }
+            .container > *:not(#report-section) {
+                display: none;
+            }
+            #report-section button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <!-- Header image set to your image - Adjust path if needed -->
+            <img src="Novo Projeto.png" alt="Defesa Civil Logo" />
+            <h1>Sistema de Logística de Viaturas</h1>
+        </header>
+        
+        <!-- Dashboard -->
+        <section class="dashboard">
+            <h2>Dashboard de Viaturas</h2>
+            <div class="dashboard-stats">
+                <div>Total de Viaturas: <span id="totalViaturas">0</span></div>
+                <div>Viaturas Inativas: <span id="inativas">0</span></div>
+                <div>Viaturas em Serviço: <span id="emServico">0</span></div>
+            </div>
+            <div class="dashboard-list">
+                <div>
+                    <h3>Inativas</h3>
+                    <ul id="listaInativas"></ul>
+                </div>
+                <div>
+                    <h3>Em Serviço</h3>
+                    <ul id="listaEmServico"></ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Formulário de Cadastro de Viatura -->
+        <section>
+            <h2>Cadastro de Viatura</h2>
+            <form id="cadastroForm">
+                <input type="text" id="viatura" placeholder="Viatura (ex: VTR 14 cov)" required>
+                <input type="text" id="condutor" placeholder="Condutor (ex: Gomes)" required>
+                <input type="text" id="operador" placeholder="Operador (ex: Rangel)" required>
+                <input type="text" id="liderEquipe" placeholder="Líder de Equipe (ex: Silva)" required>
+                <button type="submit">Cadastrar Viatura</button>
+            </form>
+        </section>
+        
+        <!-- Lista de Viaturas -->
+        <section class="viatura-list">
+            <h2>Viaturas Cadastradas</h2>
+            <div id="viaturas"></div>
+        </section>
+        
+        <!-- Relatório -->
+        <section id="report-section">
+            <h2>Relatório</h2>
+            <button onclick="generateReport()">Gerar e Imprimir Relatório</button>
+            <div id="report-content"></div>
+        </section>
+        
+        <!-- Reset Data Section -->
+        <section id="reset-section">
+            <h2>Zerar Dados</h2>
+            <button onclick="resetData()">Zerar Dados</button>
+            <div id="reset-content"></div>
+        </section>
+    </div>
+
+    <script>
+        // Armazenamento de viaturas (em memória e localStorage para persistência)
+        let viaturas = JSON.parse(localStorage.getItem('viaturas')) || [];
+        const viaturasDiv = document.getElementById('viaturas');
+        const totalViaturasSpan = document.getElementById('totalViaturas');
+        const inativasSpan = document.getElementById('inativas');
+        const emServicoSpan = document.getElementById('emServico');
+        const listaInativas = document.getElementById('listaInativas');
+        const listaEmServico = document.getElementById('listaEmServico');
+
+        // Função para atualizar o dashboard
+        function updateDashboard() {
+            const total = viaturas.length;
+            const inativas = viaturas.filter(v => v.status === 'Inatividade').length;
+            const emServico = viaturas.filter(v => v.status === 'Em Serviço').length;
+
+            totalViaturasSpan.textContent = total;
+            inativasSpan.textContent = inativas;
+            emServicoSpan.textContent = emServico;
+
+            listaInativas.innerHTML = viaturas
+                .filter(v => v.status === 'Inatividade')
+                .map(v => `<li>${v.viatura} - Condutor: ${v.condutor}, Operador: ${v.operador}, Líder de Equipe: ${v.liderEquipe}, Endereço: ${v.endereco || 'Não definido'}</li>`)
+                .join('') || '<li>Nenhuma viatura inativa</li>';
+
+            listaEmServico.innerHTML = viaturas
+                .filter(v => v.status === 'Em Serviço')
+                .map(v => `<li>${v.viatura} - Condutor: ${v.condutor}, Operador: ${v.operador}, Líder de Equipe: ${v.liderEquipe}, Rota: De ${v.rota?.start || 'Não definido'} para ${v.rota?.end || 'Não definido'}</li>`)
+                .join('') || '<li>Nenhuma viatura em serviço</li>';
+        }
+
+        // Função para renderizar viaturas
+        function renderViaturas() {
+            viaturasDiv.innerHTML = '';
+            viaturas.forEach((v, index) => {
+                const item = document.createElement('div');
+                item.className = 'viatura-item';
+                item.innerHTML = `
+                    <h3>${v.viatura} - Condutor: ${v.condutor}, Operador: ${v.operador}, Líder de Equipe: ${v.liderEquipe}</h3>
+                    <p>Status: ${v.status || 'Não definido'}</p>
+                    <p>Endereço: ${v.endereco || 'Não definido'}</p>
+                    ${v.rota ? `<p>Rota: De ${v.rota.start} para ${v.rota.end}</p>` : ''}
+                    <button onclick="showStatusForm(${index}, 'inatividade')">Definir Inatividade</button>
+                    <button onclick="showStatusForm(${index}, 'em_servico')">Definir em Serviço</button>
+                    <div id="statusForm${index}" class="status-form"></div>
+                `;
+                viaturasDiv.appendChild(item);
+            });
+            updateDashboard();
+            localStorage.setItem('viaturas', JSON.stringify(viaturas));
+        }
+
+        // Função para mostrar formulário de status
+        window.showStatusForm = function(index, tipo) {
+            const formDiv = document.getElementById(`statusForm${index}`);
+            formDiv.style.display = 'block';
+            if (tipo === 'inatividade') {
+                formDiv.innerHTML = `
+                    <input type="text" id="endereco${index}" placeholder="Endereço onde se encontra (ex: Base Defesa Civil)" required>
+                    <button onclick="updateStatus(${index}, 'inatividade')">Salvar</button>
+                `;
+            } else {
+                formDiv.innerHTML = `
+                    <input type="text" id="start${index}" placeholder="Endereço de origem (ex: Base Defesa Civil)" required>
+                    <input type="text" id="end${index}" placeholder="Endereço de destino (ex: Cavalhada)" required>
+                    <button onclick="updateStatus(${index}, 'em_servico')">Salvar</button>
+                `;
+            }
+        }
+
+        // Função para atualizar status e registrar no histórico
+        window.updateStatus = function(index, tipo) {
+            const timestamp = new Date().toLocaleString();
+            let entry = { timestamp, status: tipo === 'inatividade' ? 'Inatividade' : 'Em Serviço' };
+
+            if (tipo === 'inatividade') {
+                const endereco = document.getElementById(`endereco${index}`).value;
+                if (!endereco) {
+                    alert('Por favor, insira um endereço válido.');
+                    return;
+                }
+                viaturas[index].status = 'Inatividade';
+                viaturas[index].endereco = endereco;
+                viaturas[index].rota = null;
+                entry.endereco = endereco;
+            } else {
+                const start = document.getElementById(`start${index}`).value;
+                const end = document.getElementById(`end${index}`).value;
+                if (!start || !end) {
+                    alert('Por favor, insira endereços de origem e destino válidos.');
+                    return;
+                }
+                viaturas[index].status = 'Em Serviço';
+                viaturas[index].endereco = null;
+                viaturas[index].rota = { start, end };
+                entry.rota = { start, end };
+            }
+            addToHistory(index, entry);
+            renderViaturas();
+            document.getElementById(`statusForm${index}`).style.display = 'none';
+        }
+
+        // Função para adicionar ao histórico sem duplicatas
+        function addToHistory(index, entry) {
+            if (!viaturas[index].history) {
+                viaturas[index].history = [];
+            }
+            const lastEntry = viaturas[index].history[viaturas[index].history.length - 1];
+            if (!lastEntry || JSON.stringify(lastEntry) !== JSON.stringify(entry)) {
+                viaturas[index].history.push(entry);
+            }
+        }
+
+        // Função para gerar relatório
+        window.generateReport = function() {
+            const reportDiv = document.getElementById('report-content');
+            reportDiv.innerHTML = '<h3>Relatório de Viaturas</h3>';
+            viaturas.forEach(v => {
+                reportDiv.innerHTML += `<h4>${v.viatura} - Condutor: ${v.condutor}, Operador: ${v.operador}, Líder de Equipe: ${v.liderEquipe}</h4>`;
+                if (v.history && v.history.length > 0) {
+                    reportDiv.innerHTML += '<ul>';
+                    v.history.forEach(h => {
+                        let details = `${h.timestamp}: ${h.status}`;
+                        if (h.endereco) details += ` - Endereço: ${h.endereco}`;
+                        if (h.rota) details += ` - Rota: De ${h.rota.start} para ${h.rota.end}`;
+                        reportDiv.innerHTML += `<li>${details}</li>`;
+                    });
+                    reportDiv.innerHTML += '</ul>';
+                } else {
+                    reportDiv.innerHTML += '<p>Sem histórico.</p>';
+                }
+            });
+            window.print();
+        }
+
+        // Função para zerar dados com senha
+        window.resetData = function() {
+            const password = prompt("Digite a senha para zerar os dados:");
+            const correctPassword = "defesacivil2025"; // Senha hardcoded - Substitua por algo mais seguro se necessário
+            if (password === correctPassword) {
+                viaturas = [];
+                localStorage.removeItem('viaturas');
+                renderViaturas();
+                alert("Dados zerados com sucesso!");
+            } else {
+                alert("Senha incorreta. Operação cancelada.");
+            }
+        }
+
+        // Evento de cadastro
+        document.getElementById('cadastroForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const viatura = document.getElementById('viatura').value;
+            const condutor = document.getElementById('condutor').value;
+            const operador = document.getElementById('operador').value;
+            const liderEquipe = document.getElementById('liderEquipe').value;
+            viaturas.push({ viatura, condutor, operador, liderEquipe, history: [] });
+            renderViaturas();
+            e.target.reset();
+        });
+
+        // Render inicial
+        renderViaturas();
+    </script>
+</body>
+</html>
