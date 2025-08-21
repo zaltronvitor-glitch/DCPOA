@@ -6,9 +6,6 @@
     <title>Sistema de Logística de Viaturas</title>
     <!-- Favicon set to your image - Adjust path if needed -->
     <link rel="icon" type="image/png" href="Novo Projeto.png" />
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -231,24 +228,8 @@
     </div>
 
     <script>
-        // Firebase Configuration - Replace with your config from Firebase Console
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const viaturasRef = database.ref('viaturas');
-
-        // Armazenamento de viaturas (sincronizado via Firebase)
-        let viaturas = [];
+        // Armazenamento de viaturas (em memória e localStorage para persistência)
+        let viaturas = JSON.parse(localStorage.getItem('viaturas')) || [];
         const viaturasDiv = document.getElementById('viaturas');
         const totalViaturasSpan = document.getElementById('totalViaturas');
         const inativasSpan = document.getElementById('inativas');
@@ -295,14 +276,8 @@
                 viaturasDiv.appendChild(item);
             });
             updateDashboard();
+            localStorage.setItem('viaturas', JSON.stringify(viaturas));
         }
-
-        // Sincronizar dados do Firebase
-        viaturasRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            viaturas = data ? Object.values(data) : [];
-            renderViaturas();
-        });
 
         // Função para mostrar formulário de status
         window.showStatusForm = function(index, tipo) {
@@ -350,7 +325,6 @@
                 entry.rota = { start, end };
             }
             addToHistory(index, entry);
-            viaturasRef.child(index.toString()).set(viaturas[index]); // Update Firebase
             renderViaturas();
             document.getElementById(`statusForm${index}`).style.display = 'none';
         }
@@ -393,8 +367,8 @@
             const password = prompt("Digite a senha para zerar os dados:");
             const correctPassword = "defesacivil2025"; // Senha hardcoded - Substitua por algo mais seguro se necessário
             if (password === correctPassword) {
-                viaturasRef.remove();
                 viaturas = [];
+                localStorage.removeItem('viaturas');
                 renderViaturas();
                 alert("Dados zerados com sucesso!");
             } else {
@@ -409,10 +383,7 @@
             const condutor = document.getElementById('condutor').value;
             const operador = document.getElementById('operador').value;
             const liderEquipe = document.getElementById('liderEquipe').value;
-            const newViatura = { viatura, condutor, operador, liderEquipe, history: [] };
-            const newIndex = viaturas.length;
-            viaturas.push(newViatura);
-            viaturasRef.child(newIndex.toString()).set(newViatura); // Add to Firebase
+            viaturas.push({ viatura, condutor, operador, liderEquipe, history: [] });
             renderViaturas();
             e.target.reset();
         });
